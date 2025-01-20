@@ -1,5 +1,6 @@
 import json
 from http.server import BaseHTTPRequestHandler
+from urllib.parse import parse_qs
 
 # Simulated database
 MARKS_DB = [{"name":"d","marks":48}, {"name":"vrcegUG","marks":0}, {"name":"LIF","marks":53}, {"name":"6lxx0e","marks":34}, {"name":"kAXHgaly8","marks":37},
@@ -25,10 +26,13 @@ MARKS_DB = [{"name":"d","marks":48}, {"name":"vrcegUG","marks":0}, {"name":"LIF"
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        # Get query parameters
+        # Parse query parameters using urllib.parse
         query = self.path.split('?')[1] if '?' in self.path else ''
-        query_params = dict(p.split('=') for p in query.split('&')) if query else {}
+        query_params = parse_qs(query)
         names = query_params.get("name", [])
+
+        # Convert names from list to simple list of values (since parse_qs returns lists)
+        names = [name for sublist in names for name in sublist]
 
         # Fetch marks for the requested names
         marks = []
@@ -42,7 +46,7 @@ class Handler(BaseHTTPRequestHandler):
             if not found:
                 marks.append(None)  # Append None if name not found
 
-        # Send response
+        # Send the response
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
